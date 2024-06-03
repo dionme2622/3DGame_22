@@ -9,6 +9,22 @@ class CGameFramework
 public:
 	CGameFramework() { }
 	~CGameFramework() { }
+private:
+	// DirectX 변수
+	IDXGIFactory4* m_pdxgiFactory = NULL;
+	IDXGISwapChain3* m_pdxgiSwapChain = NULL;
+	ID3D12Device* m_pd3dDevice = NULL;
+
+	int							m_nWndClientWidth;
+	int							m_nWndClientHeight;
+
+	static const UINT			m_nSwapChainBuffers = 2;
+	UINT						m_nSwapChainBufferIndex;
+
+	bool						m_bMsaa4xEnable = false;
+	UINT						m_nMsaa4xQualityLevels = 0;
+
+	ID3D12CommandQueue* m_pd3dCommandQueue = NULL;
 
 private:
 	HINSTANCE					m_hInstance = NULL;
@@ -22,10 +38,7 @@ private:
     HBITMAP						m_hBitmapFrameBuffer = NULL;
     HBITMAP						m_hBitmapSelect = NULL;
 
-	// DirectX 변수
-	IDXGIFactory4* m_pdxgiFactory = NULL;
-	IDXGISwapChain3* m_pdxgiSwapChain = NULL;
-	ID3D12Device* m_pd3dDevice = NULL;
+
 
 
 	CPlayer*					m_pPlayer = NULL;
