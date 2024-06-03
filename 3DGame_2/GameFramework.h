@@ -27,6 +27,7 @@ private:
 	IDXGISwapChain3* m_pdxgiSwapChain = NULL;
 	ID3D12Device* m_pd3dDevice = NULL;
 
+
 	CPlayer*					m_pPlayer = NULL;
 	CScene*						m_pScene = NULL;
 	CGameObject*				m_pLockedObject = NULL;
