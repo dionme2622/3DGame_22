@@ -61,6 +61,65 @@ void CGameFramework::PresentFrameBuffer()
     ::ReleaseDC(m_hWnd, hDC);
 }
 
+void CGameFramework::CreateSwapChain()
+{
+	RECT rcClient;
+	::GetClientRect(m_hWnd, &rcClient);
+	m_nWndClientWidth = rcClient.right - rcClient.left;
+	m_nWndClientHeight = rcClient.bottom - rcClient.top;
+
+#ifdef _WITH_CREATE_SWAPCHAIN_FOR_HWND
+	DXGI_SWAP_CHAIN_DESC1 dxgiSwapChainDesc;
+	::ZeroMemory(&dxgiSwapChainDesc, sizeof(DXGI_SWAP_CHAIN_DESC1));
+	dxgiSwapChainDesc.Width = m_nWndClientWidth;
+	dxgiSwapChainDesc.Height = m_nWndClientHeight;
+	dxgiSwapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	dxgiSwapChainDesc.SampleDesc.Count = (m_bMsaa4xEnable) ? 4 : 1;
+	dxgiSwapChainDesc.SampleDesc.Quality = (m_bMsaa4xEnable) ? (m_nMsaa4xQualityLevels - 1) : 0;
+	dxgiSwapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	dxgiSwapChainDesc.BufferCount = m_nSwapChainBuffers;
+	dxgiSwapChainDesc.Scaling = DXGI_SCALING_NONE;
+	dxgiSwapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+	dxgiSwapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
+	dxgiSwapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+
+	DXGI_SWAP_CHAIN_FULLSCREEN_DESC dxgiSwapChainFullScreenDesc;
+	::ZeroMemory(&dxgiSwapChainFullScreenDesc, sizeof(DXGI_SWAP_CHAIN_FULLSCREEN_DESC));
+	dxgiSwapChainFullScreenDesc.RefreshRate.Numerator = 60;
+	dxgiSwapChainFullScreenDesc.RefreshRate.Denominator = 1;
+	dxgiSwapChainFullScreenDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+	dxgiSwapChainFullScreenDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+	dxgiSwapChainFullScreenDesc.Windowed = TRUE;
+
+	HRESULT hResult = m_pdxgiFactory->CreateSwapChainForHwnd(m_pd3dCommandQueue, m_hWnd, &dxgiSwapChainDesc, &dxgiSwapChainFullScreenDesc, NULL, (IDXGISwapChain1**)&m_pdxgiSwapChain);
+#else
+	DXGI_SWAP_CHAIN_DESC dxgiSwapChainDesc;
+	::ZeroMemory(&dxgiSwapChainDesc, sizeof(dxgiSwapChainDesc));
+	dxgiSwapChainDesc.BufferCount = m_nSwapChainBuffers;
+	dxgiSwapChainDesc.BufferDesc.Width = m_nWndClientWidth;
+	dxgiSwapChainDesc.BufferDesc.Height = m_nWndClientHeight;
+	dxgiSwapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	dxgiSwapChainDesc.BufferDesc.RefreshRate.Numerator = 60;
+	dxgiSwapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
+	dxgiSwapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	dxgiSwapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+	dxgiSwapChainDesc.OutputWindow = m_hWnd;
+	dxgiSwapChainDesc.SampleDesc.Count = (m_bMsaa4xEnable) ? 4 : 1;
+	dxgiSwapChainDesc.SampleDesc.Quality = (m_bMsaa4xEnable) ? (m_nMsaa4xQualityLevels - 1) : 0;
+	dxgiSwapChainDesc.Windowed = TRUE;
+	dxgiSwapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+
+	HRESULT hResult = m_pdxgiFactory->CreateSwapChain(m_pd3dCommandQueue, &dxgiSwapChainDesc, (IDXGISwapChain**)&m_pdxgiSwapChain);
+#endif
+	m_nSwapChainBufferIndex = m_pdxgiSwapChain->GetCurrentBackBufferIndex();
+
+	hResult = m_pdxgiFactory->MakeWindowAssociation(m_hWnd, DXGI_MWA_NO_ALT_ENTER);
+
+#ifndef _WITH_SWAPCHAIN_FULLSCREEN_STATE
+	CreateRenderTargetViews();
+#endif
+}
+
 void CGameFramework::BuildObjects()
 {
 	CCamera* pCamera = new CCamera();
